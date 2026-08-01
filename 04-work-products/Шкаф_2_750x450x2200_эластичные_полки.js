@@ -3,20 +3,22 @@
 // НЕ ПРОВЕРЕНО В САМОЙ ПРОГРАММЕ БАЗИС - черновик по словарю API (FMA.M.002), открыть и визуально сверить
 // Схема сборки (моё допущение, не подтверждено против настроек пилота):
 //   стойки (левая/правая) - на всю высоту, дно и крышка - вкладные между стойками, полки - тот же принцип
+// Исправление (01.08.2026): Prop.NewNumber вызывается напрямую у Prop, не у группы -
+//   первая версия падала на Group.NewNumber(...), такой функции нет в словаре API
 
 function MakeProperties() {
-    var Group = Prop.NewGroup('Габариты корпуса');
-    var Width = Group.NewNumber('Ширина', 750);
-    var Depth = Group.NewNumber('Глубина', 450);
-    var Height = Group.NewNumber('Высота', 2200);
+    Prop = Action.Properties; // честная поправка (01.08.2026): Prop - не встроенная переменная, её нужно объявить самому
+
+    Width = Prop.NewNumber('Ширина', 750);
+    Depth = Prop.NewNumber('Глубина', 450);
+    Height = Prop.NewNumber('Высота', 2200);
 
     var MatGroup = Prop.NewGroup('Материалы');
-    var Mat = MatGroup.NewMaterial('Плита корпуса');
-    var Thickness = MatGroup.NewNumber('Толщина плиты', 16);
-    var Butt = MatGroup.NewButt('Кромка');
+    Mat = MatGroup.NewMaterial('Плита корпуса');
+    Thickness = Prop.NewNumber('Толщина плиты', 16);
+    Butt = MatGroup.NewButt('Кромка');
 
-    var ShelfGroup = Prop.NewGroup('Полки');
-    var ShelfSpacing = ShelfGroup.NewNumber('Целевой шаг полок', 350);
+    ShelfSpacing = Prop.NewNumber('Целевой шаг полок', 350);
 
     Prop.OnChange = function () {
         Make();
@@ -65,6 +67,12 @@ function Make() {
     }
 
     // Фасад (дверь) и петли - намеренно не включены в этот черновик, следующий шаг
-
-    Action.Continue(); // оставить в области скрипта для проверки перед передачей в Базис-Мебельщик
 }
+
+// Настоящая причина прежних неудачных запусков (01.08.2026): функции были только
+// объявлены, но нигде не вызывались - по образцу рабочего примера пилота
+// («Моя первая тумбочка 2.js») вызов должен идти в самом теле скрипта, а не только
+// внутри Prop.OnChange.
+MakeProperties();
+Make();
+Action.Continue(); // оставить в области скрипта для проверки перед передачей в Базис-Мебельщик
